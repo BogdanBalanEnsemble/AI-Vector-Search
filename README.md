@@ -104,17 +104,6 @@ WHERE a.id < b.id AND VECTOR_DISTANCE(...) <= :max_dist;
 
 ---
 
-### 4. Clustering semantic
-
-Se aplică **Agglomerative Clustering** pentru a grupa documentele în funcție de similaritate.
-
-Rezultatul:
-
-- documentele apropiate semantic sunt grupate automat
-- nu este necesară etichetare manuală
-
----
-
 ### 4. Vizualizare rezultate
 
 Dashboard-ul conține:
