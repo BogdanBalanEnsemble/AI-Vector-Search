@@ -1,27 +1,26 @@
 # Detectarea Similarității între Documente folosind Vector Search
 
-Proiectul demonstrează identificarea documentelor **duplicate** și **similare semantic** folosind tehnici de **AI Vector Search**.
+Acest proiect demonstrează implementarea unei soluții profesionale de identificare a documentelor duplicate și similare semantic, utilizând noile capabilități native de AI Vector Search din Oracle Database 23ai.
 
-Soluția transformă documentele text în **vectori (embeddings)** și compară aceste reprezentări numerice pentru a determina cât de apropiate sunt ca sens, nu doar ca text.
-
----
+## Spre deosebire de metodele tradiționale, soluția mută logica de calcul a distanțelor de la nivelul aplicației direct în nucleul bazei de date, profitând de indexarea vectorială pentru performanță ridicată.
 
 ## Obiectiv
 
-- Detectarea documentelor duplicate (identice sau aproape identice)
-- Identificarea documentelor similare semantic (parafrazare, idei similare)
-- Gruparea documentelor în **clustere tematice**
-- Vizualizarea rezultatelor într-un dashboard intuitiv
+- Stocare Vectorială: Salvarea documentelor și a embedding-urilor aferente într-un format binar eficient în Oracle.
+- Indexare Performantă: Utilizarea indecșilor vectoriali de tip IVF (Inverted File) pentru căutări rapide.
+- Analiză în SQL: Calcularea similarității folosind funcția nativă VECTOR_DISTANCE.
+- Clustering & Vizualizare: Grupare automată și generarea unui dashboard complex (PCA, Heatmap, Raport).
 
 ---
 
-## Conceptul de bază
+## Arhitectura Sistemului
 
-Text → Embedding (vector) → Similaritate → Detectare perechi → Clustering → Vizualizare
-
-- **Embedding** = reprezentare numerică a sensului unui text
-- **Cosine similarity** = măsură a asemănării între două texte
-- **Clustering** = gruparea documentelor similare
+- Fluxul de date este optimizat pentru scalabilitate:
+- Text Processing: Generare embeddings (384 dimensiuni) folosind modelul all-MiniLM-L6-v2.
+- Binary Upload: Conversia vectorilor în format binar (array.array) și inserare optimizată prin oracledb.
+- Vector Indexing: Crearea unui index IVF în tablespace-uri cu management automat (ASSM).
+- SQL Inference: Executarea interogărilor de proximitate direct pe serverul bazei de date.
+- Analytics: Reducerea dimensionalității (PCA) și clustering în Python pentru interpretare.
 
 ---
 
@@ -55,38 +54,40 @@ Exemple:
 
 ## Tehnologii utilizate
 
-- Python
-- sentence-transformers (embeddings)
-- NumPy
-- scikit-learn (clustering)
-- Matplotlib & Seaborn (vizualizare)
-- UMAP / PCA (reducere dimensională)
+- Bază de date: Oracle Database 23ai (Free Edition).
+- Limbaj: Python 3.x.
+- Driver DB: oracledb
+- AI/ML: sentence-transformers (HuggingFace).
+- Data Science: NumPy, scikit-learn (PCA & Agglomerative Clustering).
+- Vizualizare: Matplotlib & Seaborn
 
 ---
 
 ## Cum funcționează
 
-### 1. Generare embeddings
+### 1. Modelul de Date (SQL)
 
-Fiecare document este transformat într-un vector numeric folosind modelul:
+Tabelul este creat într-un tablespace de tip ASSM (USERS) pentru a suporta tipul de date VECTOR:
 
-`all-MiniLM-L6-v2`
-
----
-
-### 2. Calcul similaritate
-
-Se calculează **cosine similarity** între toate perechile de documente.
-
-Rezultatul este o matrice:
-
-- valori între -1 și 1
-- valori apropiate de 1 = documente similare
-- valori apropiate de 0 = documente diferite
+CREATE TABLE doc_vectors (
+id NUMBER PRIMARY KEY,
+continut CLOB,
+v_embedding VECTOR(384, FLOAT32)
+) TABLESPACE USERS;
 
 ---
 
-### 3. Detectare duplicate și similare
+### 2. Indexarea Vectorială
+
+Pentru a evita căutările de tip "Brute Force", se utilizează un index de tip IVF care partiționează spațiul vectorial:
+
+CREATE VECTOR INDEX doc_ivf_idx ON doc_vectors (v_embedding)
+ORGANIZATION NEIGHBOR PARTITIONS
+DISTANCE COSINE;
+
+---
+
+### 3. Detectarea Similarității în SQL
 
 Se folosesc două praguri:
 
@@ -95,8 +96,11 @@ Se folosesc două praguri:
 
 Astfel:
 
-- documentele identice sunt detectate ca duplicate
-- documentele cu sens apropiat sunt detectate ca similare
+Identificarea perechilor se face printr-o singură interogare eficientă:
+
+SELECT 1 - VECTOR_DISTANCE(a.v_embedding, b.v_embedding, COSINE) as similarity
+FROM doc_vectors a, doc_vectors b
+WHERE a.id < b.id AND VECTOR_DISTANCE(...) <= :max_dist;
 
 ---
 
@@ -111,7 +115,7 @@ Rezultatul:
 
 ---
 
-### 5. Vizualizare rezultate
+### 4. Vizualizare rezultate
 
 Dashboard-ul conține:
 
