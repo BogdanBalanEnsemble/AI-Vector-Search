@@ -17,8 +17,8 @@ DB_CONFIG = {
 }
 
 documents = [
-    "How can I reset my account passworddd?",
-    "How can I reset my account passworddd?",
+    "How can I reset my account password?",
+    "How can I reset my account password?",
     "I forgot my credentials and need to change my password.",
     "The stock market experienced a significant drop today.",
     "Major indices fell sharply as investors reacted to new economic data.",
