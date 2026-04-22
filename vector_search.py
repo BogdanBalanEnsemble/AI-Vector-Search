@@ -31,7 +31,7 @@ try:
     # Conectare
     conn = oracledb.connect(**DB_CONFIG)
     cursor = conn.cursor()
-    print("✅ Conectat cu succes la Oracle Database 23ai")
+    print("Conectat cu succes la Oracle Database 23ai")
 
     # ──────────────────────────────────────────────
     # 2. PREGĂTIRE BAZĂ DE DATE (Tabel & Curățare)
@@ -47,7 +47,7 @@ try:
         )
         TABLESPACE USERS;
     """)
-    print("✅ Tabelul 'doc_vectors' a fost creat.")
+    print("Tabelul 'doc_vectors' a fost creat.")
 
     # ──────────────────────────────────────────────
     # 3. VECTORIZARE & INSERARE OPTIMIZATĂ
@@ -64,7 +64,7 @@ try:
             [i, labels[i], doc, vec_data]
         )
     conn.commit()
-    print(f"✅ Au fost inserate optimizat {len(documents)} documente.")
+    print(f"Au fost inserate optimizat {len(documents)} documente.")
 
     # ──────────────────────────────────────────────
     # 4. CREARE INDEX VECTORIAL 
@@ -79,7 +79,7 @@ try:
         TABLESPACE USERS
     """)
     
-    print("✅ Indexul vectorial a fost creat cu succes.")
+    print("Indexul vectorial a fost creat cu succes.")
 
     # ──────────────────────────────────────────────
     # 5. DETECTAREA DUPLICATELOR DIRECT DIN ORACLE SQL
